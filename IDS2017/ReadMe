@@ -1,0 +1,2 @@
+this project for intrusion detection specially rare attack in SDN using AdaBoost + cost-sensitive
+the vector of weights is optimized using Grid seaarch and Genetic algorithm to achieve the higheest G-mean which is consideres as the objective function.
