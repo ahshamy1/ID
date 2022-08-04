@@ -1,0 +1,124 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Jul 24 23:15:23 2022
+
+@author: 20122
+"""
+################### Import Required Libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import LabelEncoder
+
+################### Display Setting
+pd.options.display.max_columns= 90
+pd.options.display.max_rows= 100
+
+################### Read Dataset 8 Files
+df1 = pd.read_csv('C:/final/ids2017/dataset/full/Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv')
+df2 = pd.read_csv('C:/final/ids2017/dataset/full/Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv')
+df3 = pd.read_csv('C:/final/ids2017/dataset/full/Friday-WorkingHours-Morning.pcap_ISCX.csv')
+df4 = pd.read_csv('C:/final/ids2017/dataset/full/Monday-WorkingHours.pcap_ISCX.csv')
+df5 = pd.read_csv('C:/final/ids2017/dataset/full/Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv')
+df6 = pd.read_csv('C:/final/ids2017/dataset/full/Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv')
+df7 = pd.read_csv('C:/final/ids2017/dataset/full/Tuesday-WorkingHours.pcap_ISCX.csv')
+df = pd.read_csv('C:/final/ids2017/dataset/full/Wednesday-workingHours.pcap_ISCX.csv')
+
+
+################### Concatenate Dataset Files
+df=pd.concat([df1,df2,df3,df4,df5,df6,df7,df8
+
+################### delete unused variables to save memory
+del (df1, df2, df3, df4, df5, df6, df7, df8)
+
+################### Explore dataset % Drawing dataset
+df.shape
+df.count()
+df.info()
+df.head()
+df.tail()
+df.columns
+df[' Label'].unique()
+df[' Label'].value_counts()
+x = df[' Label'].value_counts()
+x.plot(kind='barh')
+
+
+################### Remove missleading SPace in Columns names ##################
+df.columns = ['Destination Port', 'Flow Duration', 'Total Fwd Packets',
+       'Total Backward Packets', 'Total Length of Fwd Packets',
+       'Total Length of Bwd Packets', 'Fwd Packet Length Max',
+       'Fwd Packet Length Min', 'Fwd Packet Length Mean',
+       'Fwd Packet Length Std', 'Bwd Packet Length Max',
+       'Bwd Packet Length Min', 'Bwd Packet Length Mean',
+       'Bwd Packet Length Std', 'Flow Bytes/s', 'Flow Packets/s',
+       'Flow IAT Mean', 'Flow IAT Std', 'Flow IAT Max', 'Flow IAT Min',
+       'Fwd IAT Total', 'Fwd IAT Mean', 'Fwd IAT Std', 'Fwd IAT Max',
+       'Fwd IAT Min', 'Bwd IAT Total', 'Bwd IAT Mean', 'Bwd IAT Std',
+       'Bwd IAT Max', 'Bwd IAT Min', 'Fwd PSH Flags', 'Bwd PSH Flags',
+       'Fwd URG Flags', 'Bwd URG Flags', 'Fwd Header Length',
+       'Bwd Header Length', 'Fwd Packets/s', 'Bwd Packets/s',
+       'Min Packet Length', 'Max Packet Length', 'Packet Length Mean',
+       'Packet Length Std', 'Packet Length Variance', 'FIN Flag Count',
+       'SYN Flag Count', 'RST Flag Count', 'PSH Flag Count',
+       'ACK Flag Count', 'URG Flag Count', 'CWE Flag Count',
+       'ECE Flag Count', 'Down/Up Ratio', 'Average Packet Size',
+       'Avg Fwd Segment Size', 'Avg Bwd Segment Size',
+       'Fwd Header Length.1', 'Fwd Avg Bytes/Bulk', 'Fwd Avg Packets/Bulk',
+       'Fwd Avg Bulk Rate', 'Bwd Avg Bytes/Bulk', 'Bwd Avg Packets/Bulk',
+       'Bwd Avg Bulk Rate', 'Subflow Fwd Packets', 'Subflow Fwd Bytes',
+       'Subflow Bwd Packets', 'Subflow Bwd Bytes', 'Init_Win_bytes_forward',
+       'Init_Win_bytes_backward', 'act_data_pkt_fwd',
+       'min_seg_size_forward', 'Active Mean', 'Active Std', 'Active Max',
+       'Active Min', 'Idle Mean', 'Idle Std', 'Idle Max', 'Idle Min',
+       'Label']
+
+
+
+################### Delete  NULL Records ##################
+df = df.dropna()
+
+################### Replace infinity (inf & -inf) values with NULL  Then Delete ##################
+df = df.replace([np.inf, -np.inf], np.nan)
+df=df.dropna()
+df.shape
+
+###### Drop columns with single unique values ##################
+column_names=list(df)
+col_to_drop =[]
+for K in column_names:
+    size = df.groupby([K]).size()
+    # check for columns that only take one value
+    if (len(size.unique()) == 1):
+        col_to_drop.append(K)
+col_to_drop
+
+
+################### Drop columns with constant singlr value##################
+df.info()
+df.shape
+df=df.drop(col_to_drop1, axis=1)
+df.info()
+df.shape
+
+################### Drop Duplicate Columns: Fwd Header Length.1 & Fwd Header Length   ##################
+df = df.drop(['Fwd Header Length.1'], axis=1)
+df.info()
+df.shape
+
+################### label encoding  ##################
+labelencoder = LabelEncoder()
+df.iloc[:, -1] = labelencoder.fit_transform(df.iloc[:, -1])
+df['Label'].value_counts()
+
+
+################## Data Normalization using Min-max normalization ################## 
+X = df.iloc[: , 0:-1]
+X.shape
+min_max_scaler = MinMaxScaler().fit(X)
+df.iloc[ : , 0:-1] = min_max_scaler.transform (X)
+
+################### Save the new dataset  ##################
+df.to_csv('C:/final/ids2017/dataset/data-ahmed1-7.csv', index = False)
+
