@@ -1,0 +1,82 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Jul 20 16:36:32 2022
+
+@author: 20122
+"""
+
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score ,confusion_matrix, classification_report
+from sklearn.metrics import precision_score, recall_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Display Setting
+pd.options.display.max_columns= 90
+pd.options.display.max_rows= 100
+
+df = pd.read_csv('C:/final/ids2017/dataset/data1.csv')
+
+df.shape
+df.dtypes
+df['label'].value_counts()
+
+df.head()
+
+X = df.drop(['label'], axis=1)
+X
+
+y = df['label']
+y
+
+x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)
+
+#Define Weights
+weights = {0:0.5, 1:1.0, 2:1.0, 3:1.0, 4:1.0, 5:1.0, 6:1.0, 7:1.0, 8:1.0, 9:1.0, 10:1.0, 12:1.0, 13:1.0, 14:1.0 }
+
+clf=AdaBoostClassifier(random_state=96,  base_estimator=RandomForestClassifier(random_state=100, class_weight=weights), n_estimators=100,learning_rate=0.01, algorithm='SAMME.R')
+
+
+clf.fit(x_train, y_train)
+clf.score(x_train, y_train)
+
+
+y_pred = clf.predict(x_test)
+
+clf.score(x_test, y_test)
+
+# Confusion Matrix
+matrix = confusion_matrix(y_test, y_pred)                                  
+matrix = matrix.astype('float') / matrix.sum(axis=1)[:, np.newaxis]
+
+
+# Plot
+plt.figure(figsize=(20,20))
+sns.set(font_scale=1.4)
+sns.heatmap(matrix, annot=True, annot_kws={'size':10},cmap=plt.cm.Greens, linewidths=0.2)
+
+# Classification Report
+print(classification_report(y_test, y_pred))
+
+
+# G-mean
+
+precision = precision_score(y_test, y_pred, average='micro')
+recall = recall_score(y_test, y_pred, average='micro')
+#parameter 'micro' calculates metrics globally by counting the total TP, FN and FP
+
+scores = [precision, recall]
+weights = [0.5,0.5]  #60% precision, 40% recall
+
+# weighted Geometric Mean
+    wgm = np.product(np.power(scores, weights))
+    wgm
+    
+    
+    
+
+
