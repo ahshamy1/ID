@@ -1,0 +1,94 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Jul 24 23:15:23 2022
+
+@author: 20122
+"""
+# Import Required Libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import LabelEncoder
+
+
+# Display Setting
+pd.options.display.max_columns= 90
+pd.options.display.max_rows= 100
+
+
+# # Read Dataset 8 Files
+df1 = pd.read_csv('C:/final/ids2018/dataset/full/02-14-2018.csv')
+df2 = pd.read_csv('C:/final/ids2018/dataset/full/02-15-2018.csv')
+df3 = pd.read_csv('C:/final/ids2018/dataset/full/02-16-2018.csv')
+df4 = pd.read_csv('C:/final/ids2018/dataset/full/02-20-2018.csv')
+df5 = pd.read_csv('C:/final/ids2018/dataset/full/02-21-2018.csv')
+df6 = pd.read_csv('C:/final/ids2018/dataset/full/02-22-2018.csv')
+df7 = pd.read_csv('C:/final/ids2018/dataset/full/02-23-2018.csv')
+df8 = pd.read_csv('C:/final/ids2018/dataset/full/02-28-2018.csv')
+df9 = pd.read_csv('C:/final/ids2018/dataset/full/03-01-2018.csv')
+df10 = pd.read_csv('C:/final/ids2018/dataset/full/03-02-2018.csv')
+
+
+# Concatenate Dataset Files
+df=pd.concat([df1,df2,df3,df4,df5,df6,df7,df8])
+
+# delete unused variables to save memory
+del (df1, df2, df3, df4, df5, df6, df7, df8)
+
+# Explore dataset 
+df.shape
+df.count()
+df.info()
+df.head()
+df.tail()
+df.columns
+df[' Label'].unique()
+df[' Label'].value_counts()
+x = df[' Label'].value_counts()
+x.plot(kind='barh')
+x
+
+
+# Delete  NULL Records
+df = df.dropna()
+
+# Replace infinity (inf & -inf) values with NULL  Then Delete
+df = df.replace([np.inf, -np.inf], np.nan)
+df=df.dropna()
+df.shape
+#####
+# Drop columns with single unique values
+column_names=list(df)
+col_to_drop =[]
+for K in column_names:
+    size = df.groupby([K]).size()
+    # check for columns that only take one value
+    if (len(size.unique()) == 1):
+        col_to_drop.append(K)
+
+df=df.drop(col_to_drop1, axis=1)
+df.info()
+df.shape
+
+
+
+# label encoding
+labelencoder = LabelEncoder()
+df.iloc[:, -1] = labelencoder.fit_transform(df.iloc[:, -1])
+df['Label'].value_counts()
+
+
+################## Data Normalization using Min-max normalization ################## 
+X = df.iloc[: , 0:-1]
+X.shape
+min_max_scaler = MinMaxScaler().fit(X)
+df.iloc[ : , 0:-1] = min_max_scaler.transform (X)
+
+
+
+
+
+
+df.to_csv('C:/final/ids2018/dataset/data-ahmed1-7.csv', index = False)
+
