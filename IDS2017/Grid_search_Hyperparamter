@@ -1,0 +1,124 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Jul 20 16:36:32 2022
+
+@author: Ahmed El_Shamy
+"""
+
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score ,confusion_matrix, classification_report
+from sklearn.metrics import precision_score, recall_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import GridSearchCV
+from sklearn.tree import DecisionTreeClassifier
+
+
+
+# Display Setting
+pd.options.display.max_columns= 90
+pd.options.display.max_rows= 100
+
+df = pd.read_csv('C:/final/ids2017/dataset/data1.csv')
+
+df.shape
+df.dtypes
+df['label'].value_counts()
+
+df.head()
+
+X = df.drop(['label'], axis=1)
+X
+
+y = df['label']
+y
+
+x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)
+
+
+clf1 = DecisionTreeClassifier()
+
+parameters_to_tune = {'min_samples_split': [2, 4, 6],
+                      'min_samples_leaf': [1, 2, 4],
+                      'max_depth': [4, 10, 15],
+                      'splitter' : ('best', 'random'),
+                      'max_features':[2, 4, 6],
+                      'class_weight':[{0:0.1, 1:1, 2:1, 3:1, 4:1, 5:1, 6:1, 7:1, 8:1, 9:1, 10:1, 12:1, 13:1, 14:1 },
+                                 {0:0.2, 1:0.9, 2:0.9, 3:0.9, 4:0.9, 5:0.9, 6:0.9, 7:0.9, 8:0.9, 9:1, 10:1, 12:1, 13:1, 14:1 },
+                                 {0:0.3, 1:0.6, 2:0.6, 3:0.6, 4:0.6, 5:0.7, 6:0.7, 7:0.8, 8:0.8, 9:0.8, 10:1, 12:1, 13:1, 14:1 }]
+                      }
+                          
+clf = GridSearchCV(estimator = clf1, param_grid = parameters_to_tune)
+clf.fit(x_train, y_train)
+
+
+
+clf.best_params_
+clf.best_score_
+clf.best_estimator_
+
+
+# report the best configuration
+print("Best: %f using %s" % (clf.best_score_, clf.best_params_))
+# report all configurations
+means = clf.cv_results_['mean_test_score']
+means
+stds = clf.cv_results_['std_test_score']
+params = clf.cv_results_['params']
+params
+
+for mean, stdev, param in zip(means, stds, params):
+    print("%f (%f) with: %r" % (mean, stdev, param))
+    
+
+# using Optimized Parameter Obtained from GridSearchCV 
+# weights = {0:0.3, 1:0.6, 2:0.6, 3:0.6, 4:0.6, 5:0.7, 6:0.7, 7:0.8, 8:0.8, 9:0.8, 10:1.0, 12:1.0, 13:1.0, 14:1.0 }
+
+    
+clf1 = DecisionTreeClassifier()
+clf=AdaBoostClassifier(random_state=96,  base_estimator=DecisionTreeClassifier(splitter='best', max_depth= 15, max_features = 6, min_samples_leaf =1, min_samples_split = 6, class_weight=weights), n_estimators=100,learning_rate=0.01, algorithm='SAMME.R')
+
+clf.fit(x_train, y_train)  
+y_pred = clf.predict(x_test)
+
+
+
+# Confusion Matrix
+matrix = confusion_matrix(y_test, y_pred)                                  
+matrix = matrix.astype('float') / matrix.sum(axis=1)[:, np.newaxis]
+
+
+# Plot
+plt.figure(figsize=(20,20))
+sns.set(font_scale=1.4)
+sns.heatmap(matrix, annot=True, annot_kws={'size':10},cmap=plt.cm.Greens, linewidths=0.2)
+
+# Classification Report
+print(classification_report(y_test, y_pred))
+
+
+
+# G-mean
+
+precision = precision_score(y_test, y_pred, average='micro')
+recall = recall_score(y_test, y_pred, average='micro')
+#parameter 'micro' calculates metrics globally by counting the total TP, FN and FP
+
+scores = [precision, recall]
+weights = [0.5,0.5]  #60% precision, 40% recall
+
+# weighted Geometric Mean
+    wgm = np.product(np.power(scores, weights))
+    wgm
+    
+    
+    
+
+# define grid search
+# grid = GridSearchCV(estimator=clf, param_grid=param_grid, n_jobs=-1, scoring='roc_auc')
+# execute the grid search
+
