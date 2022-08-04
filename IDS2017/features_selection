@@ -1,0 +1,139 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Jul 25 09:43:41 2022
+
+@author: 20122
+"""
+# Import Required Libraries
+import pandas as pd
+import numpy as np
+from   sklearn.feature_selection import SelectKBest
+from   sklearn.feature_selection import chi2
+from   sklearn.ensemble import ExtraTreesClassifier
+import matplotlib.pyplot as plt
+import seaborn as sns
+from   sklearn.ensemble import RandomForestClassifier
+
+
+# Display Setting
+pd.options.display.max_columns= 90
+pd.options.display.max_rows= 100
+
+# Read Dataset 
+df = pd.read_csv("C:/final/ids2017/dataset/Full/data-ahmed-28-7-2022.csv")
+
+
+
+df.shape
+# Split The Dataset into X = Independent Feature Columns & y = Target Column
+X = df.iloc[:,0:-1]  
+y = df.iloc[:,-1]    
+# Check
+X.shape
+y.shape
+
+#################   1: CHI Sequare   #################
+#Using  SelectKBest class and Chi-Sequare test to select top 20 best features
+bestfeatures = SelectKBest(score_func=chi2, k=35)
+fit = bestfeatures.fit(X,y)
+
+#Store Results
+fs_scores = pd.DataFrame(fit.scores_)
+fs_columns = pd.DataFrame(X.columns)
+fs_result = pd.concat([fs_columns,fs_scores],axis=1)
+fs_result.columns = ['Feature','Score']
+fs_result
+
+# top 20 Features
+print(fs_result.nlargest(69,'Score'))
+
+# Plot Feature Importances graph
+feat_importance = pd.Series(fit.scores_, index=X.columns)
+feat_importance.nlargest(69).plot(kind='barh')
+plt.figure(figsize=(100,100))
+plt.show()
+
+#################   2 : Feature Importance : ExtraTree  #################
+
+
+model = ExtraTreesClassifier()
+model.fit(X,y)
+
+print(model.feature_importances_) 
+f_score = pd.DataFrame(model.feature_importances_)
+f_name = pd.DataFrame(model.feature_names_in_)
+f_result = pd.concat([f_name,f_score],axis=1)
+f_result.columns = ['Feature','Score']
+f_result
+print(f_result.nlargest(69,'Score'))
+
+
+# Plot Feature Importances graph
+feat_importances = pd.Series(model.feature_importances_, index=X.columns)
+feat_importances.nlargest(69).plot(kind='barh')
+plt.figure(figsize=(100,100))
+plt.show()
+
+
+#################   3 : Feature Importance : RandomForest  #################
+# create the classifier
+classifier_model = RandomForestClassifier()
+classifier_model.fit(X, y)
+
+
+print(classifier_model.feature_importances_) 
+fs_score_rf = pd.DataFrame(classifier_model.feature_importances_)
+fs_name_rf = pd.DataFrame(classifier_model.feature_names_in_)
+fs_result_rf = pd.concat([fs_name_rf,fs_score_rf],axis=1)
+fs_result_rf.columns = ['Feature','Score']
+fs_result_rf
+print(fs_result_rf.nlargest(69,'Score'))
+
+
+# Plot Feature Importances graph
+feat_importances = pd.Series(classifier_model.feature_importances_, index=X.columns)
+feat_importances.nlargest(69).plot(kind='barh')
+plt.figure(figsize=(10,10))
+plt.show()
+
+
+
+#################   4 : Correlation Matrix  #################
+
+#get correlations of each features in dataset
+corrmat = df.corr()
+top_corr_features = corrmat.index
+plt.figure(figsize=(20,20))
+#plot heat map
+g=sns.heatmap(df[top_corr_features].corr(),annot=True,cmap="RdYlGn")
+
+
+
+
+df.shape
+col_drop_fs = ['Total Fwd Packets',
+       'Total Backward Packets', 'Total Length of Fwd Packets',
+       'Total Length of Bwd Packets', 'Fwd Packet Length Max', 'Fwd Packet Length Min', 'Fwd Packet Length Mean',
+       'Fwd Packet Length Std', 
+       'Bwd Packet Length Min', 
+'Flow Bytes/s', 'Flow Packets/s',
+       'Flow IAT Mean', 'Flow IAT Std', 'Flow IAT Min',
+        'Fwd IAT Mean',  'Bwd IAT Total', 'Bwd IAT Mean', 'Bwd IAT Std',  'Bwd IAT Min', 'Fwd PSH Flags', 'Bwd PSH Flags',
+       'Fwd URG Flags', 'Bwd URG Flags', 'Fwd Header Length',
+       'Bwd Header Length', 'Fwd Packets/s', 'Bwd Packets/s',
+       'Min Packet Length', 'FIN Flag Count',
+       'SYN Flag Count', 'RST Flag Count', 'ACK Flag Count', 'URG Flag Count', 'CWE Flag Count',
+       'ECE Flag Count', 'Down/Up Ratio',  'Avg Fwd Segment Size',        'Fwd Header Length.1', 'Fwd Avg Bytes/Bulk', 'Fwd Avg Packets/Bulk',
+       'Fwd Avg Bulk Rate', 'Bwd Avg Bytes/Bulk', 'Bwd Avg Packets/Bulk',
+       'Bwd Avg Bulk Rate', 'Subflow Fwd Packets', 'Subflow Fwd Bytes',
+       'Subflow Bwd Packets', 'Subflow Bwd Bytes',  'act_data_pkt_fwd',
+       'min_seg_size_forward', 'Active Mean', 'Active Std', 'Active Max',
+       'Active Min', 'Idle Mean', 'Idle Std', 'Idle Max', 'Idle Min'
+]
+df.shape
+df = df.drop(col_drop_fs, axis=1)
+df.shape
+df.columns
+
+
+
