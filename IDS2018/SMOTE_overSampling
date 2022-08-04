@@ -1,0 +1,192 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Jul 20 19:00:47 2022
+
+@author: Ahmed El_Shamy
+"""
+# check version number
+import imblearn
+print(imblearn.__version__)
+
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
+
+import pandas as pd
+from pandas.api.types import CategoricalDtype
+
+import numpy as np
+from scipy import sparse
+
+import string
+
+import matplotlib.pyplot as plt
+import matplotlib.style as style
+style.use('seaborn-bright')
+
+import seaborn as sns
+
+from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
+import plotly as py
+import plotly.graph_objs as go
+
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.metrics import average_precision_score
+from sklearn.metrics import precision_recall_curve
+from sklearn.utils import resample
+from imblearn.over_sampling import SMOTE
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.metrics import accuracy_score ,confusion_matrix, classification_report
+from sklearn.metrics import precision_score, recall_score
+from scikitplot.metrics import plot_roc
+from scikitplot.metrics import plot_precision_recall
+
+
+
+
+df = pd.read_csv('C:/final/ids2017/dataset/data-ahmed1-7.csv')
+
+df.tail(10)
+df.shape
+df['Label'].unique
+
+#  FS
+df.shape
+col_drop_fs = ['Total Fwd Packets',
+       'Total Backward Packets', 'Total Length of Fwd Packets',
+       'Total Length of Bwd Packets', 'Fwd Packet Length Max', 'Fwd Packet Length Min', 'Fwd Packet Length Mean',
+       'Fwd Packet Length Std', 'min_seg_size_forward',
+       'Bwd Packet Length Min', 'Active Mean', 'Active Std', 'Active Max',
+'Flow Bytes/s', 'Flow Packets/s',
+       'Flow IAT Mean', 'Flow IAT Std', 'Flow IAT Min',
+        'Fwd IAT Mean', 'Bwd IAT Total', 'Bwd IAT Mean', 'Bwd IAT Std',  'Bwd IAT Min', 'Fwd PSH Flags',
+       'Fwd URG Flags', 'Fwd Header Length',
+       'Bwd Header Length', 'Fwd Packets/s', 'Bwd Packets/s',
+       'Min Packet Length', 'FIN Flag Count',
+       'SYN Flag Count', 'RST Flag Count', 'ACK Flag Count', 'URG Flag Count', 'CWE Flag Count',
+       'ECE Flag Count', 'Down/Up Ratio',  'Avg Fwd Segment Size',
+       'Subflow Fwd Packets', 'Subflow Fwd Bytes',
+       'Subflow Bwd Packets', 'Subflow Bwd Bytes',  'act_data_pkt_fwd',
+       'Active Min', 'Idle Mean', 'Idle Std', 'Idle Max', 'Idle Min']
+df.shape
+df = df.drop(col_drop_fs, axis=1)
+df.shape
+df.columns
+
+
+# split data into input and taget variable(s)
+X = df.drop("Label", axis=1)
+y = df["Label"]
+
+'''
+# Count Label categories of the Dataset
+from collections import Counter
+y_counter = Counter(y)
+y_counter
+
+$ Calculate percentage of Label categories
+for k,v in y_counter.items():
+	per = v / len(y) * 100
+	print('Class=%d, n=%d (%.4f%%)' % (k, v, per))
+
+# plot the distribution
+from matplotlib import pyplot
+pyplot.bar(y_counter.keys(), y_counter.values())
+pyplot.show()
+
+#over Sampling
+from imblearn.over_sampling import SMOTE
+oversample = SMOTE()
+X, y = oversample.fit_resample(X, y)
+# summarize distribution
+counter = Counter(y)
+for k,v in counter.items():
+	per = v / len(y) * 100
+	print('Class=%d, n=%d (%.3f%%)' % (k, v, per))
+# plot the distribution
+pyplot.bar(counter.keys(), counter.values())
+pyplot.show()
+
+
+df.shape
+X.shape
+y.shape
+'''
+
+###### TRY-1 #####
+sm = SMOTE (random_state=42) #, k_neighbors=2
+X_train_sm, y_train_sm = sm.fit_resample(X, y.values.ravel())
+X_train_sm.shape
+y_train_sm.shape
+
+
+X_train_sm = pd.DataFrame(X_train_sm)
+y_train_sm = pd.DataFrame(y_train_sm)
+
+X_train, X_test, y_train, y_test = train_test_split(X_train_sm, y_train_sm,test_size=0.3)  #, stratify=y)
+
+
+#X_train, X_test, y_train, y_test = train_test_split(X_train_sm, y_train_sm, stratify=y,train_size=0.8, test_size=0.2, random_state=42)
+# split into train and test set
+#X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y,train_size=0.3, test_size=0.1, random_state=42)
+#SMOTE
+#sm = SMOTE(random_state=2)
+# sm = SMOTE (random_state=42, k_neighbors=2)
+# X_train_sm, y_train_sm = sm.fit_resample(X_train, y_train)
+
+X_train = pd.DataFrame(X_train)
+y_train = pd.DataFrame(y_train)
+X_test = pd.DataFrame(X_test)
+y_test = pd.DataFrame(y_test)
+
+
+
+X_train.shape
+y_train.shape
+clf=AdaBoostClassifier(random_state=42, n_estimators=20,learning_rate=0.1, algorithm='SAMME')
+clf.fit(X_train, y_train.values.ravel())
+
+y_pred = clf.predict(X_test)
+y_pred = pd.DataFrame(y_pred)
+
+# Calculate Model Accuracy
+print("Accuracy:", accuracy_score(y_test, y_pred))
+
+
+
+
+print('SMOTE AdaBoost')
+print(classification_report(y_test, y_pred))
+
+
+####
+precision = precision_score(y_test, y_pred, average='micro')
+recall = recall_score(y_test, y_pred, average='micro')
+#parameter 'micro' calculates metrics globally by counting the total TP, FN and FP
+
+scores = [precision, recall]
+weights = [0.5,0.5]  #60% precision, 40% recall
+
+# weighted Geometric Mean
+    wgm = np.product(np.power(scores, weights))
+    wgm
+
+
+
+
+
+
+# Plot metrics 
+plot_roc(y_test, y_pred)
+plt.figure(figsize= (12,8))
+plt.show()
+    
+plot_precision_recall(y_test, y_pred)
+plt.show()
+
+
+
+
+
+
+
